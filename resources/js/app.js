@@ -5,11 +5,13 @@
  */
 
 require('./bootstrap');
-
+import '@mdi/font/css/materialdesignicons.css'
 import Vue from 'vue';
 import vuetify from '../plugins/vuetify'
 import router from "./router/router";
+import axios from "axios";
 
+Vue.prototype.$axios = axios;
 Vue.component('app-vue', require('./App.vue').default);
 
 /**
