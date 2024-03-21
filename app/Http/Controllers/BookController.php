@@ -6,12 +6,24 @@ use Illuminate\Http\Request;
 use App\Models\Book;
 use App\Models\BookWriter;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\DB;
+
 
 class BookController extends Controller
 {
     public function index(){
         try {
-            $books = Book::with('editorial', 'category', 'writers')->get();
+            $books = Book::
+            with(['editorial' => function ($query) {
+                $query->withTrashed();
+            }])
+            ->with(['category' => function ($query) {
+                $query->withTrashed();
+            }])
+            ->with(['writers' => function ($query) {
+                $query->withTrashed();
+            }])
+            ->get();
             return response()->json(['books' => $books]);
         } catch (\Exception $e) {
             return response()->json(["Error" => "Existio un problema, intentelo mas tarde"], 500);
@@ -35,6 +47,8 @@ class BookController extends Controller
                 throw new \Exception('Existen datos vacios');
             }
 
+            DB::beginTransaction();
+
             $title = $request->input('title');
             $category_id = $request->input('category_id');
             $quantity = $request->input('quantity');
@@ -55,9 +69,11 @@ class BookController extends Controller
                 ]);
             }
 
+            DB::commit();
             return response()->json(["result" => "OK"], 200);
 
         } catch (\Exception $e) {
+            DB::rollBack();
             return response()->json(["Error" => "Existio un problema, intentelo mas tarde"], 500);
         }
     }
@@ -90,13 +106,15 @@ class BookController extends Controller
             $book->editorial_id = $editorial_id;
             $book->save();
 
-            $book->writers()->detach();
-
-            foreach ($writers as $key => $writer) {
-                BookWriter::create([
-                    "book_id" => $book->id,
-                    "writer_id" => $writer
-                ]);
+            if(!!$writers){
+                $book->writers()->detach();
+    
+                foreach ($writers as $key => $writer) {
+                    BookWriter::create([
+                        "book_id" => $book->id,
+                        "writer_id" => $writer
+                    ]);
+                }
             }
 
             return response()->json(["result" => "OK"], 200);
@@ -108,7 +126,6 @@ class BookController extends Controller
 
     public function destroy($id){
         try {
-            $title = $request->input('title');
 
             $book = Book::findOrFail($id);
             $book->delete();

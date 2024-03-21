@@ -13,7 +13,14 @@ class LoanController extends Controller
 {
     public function index(){
         try {
-            $loans = Loan::with('client', 'book','payment')->get();
+            $loans = Loan::with('payment')
+            ->with(['client' => function ($query) {
+                $query->withTrashed();
+            }])
+            ->with(['book' => function ($query) {
+                $query->withTrashed();
+            }])
+            ->get();
             return response()->json(['loans' => $loans]);
         } catch (\Exception $e) {
             return response()->json(["Error" => "Existio un problema, intentelo mas tarde"], 500);
