@@ -331,6 +331,9 @@ export default {
                 .then((response) => {
                     this.getLoans();
                     this.closeModalAddLoan();
+                    let nuevaVentana = window.open('', '_blank');
+                    nuevaVentana.document.write(response.data.ticket);
+
                 })
                 .catch((error) => {})
                 .finally(() => {

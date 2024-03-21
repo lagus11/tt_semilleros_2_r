@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Loan;
 use App\Models\Payment;
+use App\Models\User;
+use App\Models\Book;
 use Illuminate\Support\Facades\Validator;
 
 class LoanController extends Controller
@@ -57,7 +59,21 @@ class LoanController extends Controller
                 "amount" => $amount,
             ]);
 
-            return response()->json(["result" => "OK"], 200);
+            $client = User::find($client_id);
+            $book = Book::find($book_id);
+
+            $dataTicket = [
+                'nombre' => $client->name . " " . $client->last_name . " " . $client->second_last_name,
+                'book_title' => $book->title,
+                "desired" => $desired,
+                "start_date" => $start_date,
+                "end_date" => $end_date,
+                "amount" => $amount,
+            ];
+            $ticket = view('ticket', $dataTicket)->render();
+
+
+            return response()->json(["result" => "OK", 'ticket' => $ticket], 200);
 
         } catch (\Exception $e) {
             return response()->json(["Error" => "Existio un problema, intentelo mas tarde"], 500);

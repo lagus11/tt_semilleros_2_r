@@ -28,7 +28,7 @@ class BookController extends Controller
                 'quantity' => 'required',
                 'editorial_id' => 'required|exists:editorials,id',
                 'writers' => 'required|array',
-                'writers' => 'exist:writers,id',
+                'writers' => 'exists:writers,id',
             ]);
 
             if($validator->fails()){
